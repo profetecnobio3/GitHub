@@ -1,0 +1,91 @@
+---
+title: "EjerciciosR1"
+author: "Felipe Yebes"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    number_section: no
+    latex_engine: tinytex
+    toc: yes
+  pdf document:
+    number_section: no
+    latex_engine: tinytex
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if( !require(ggplot2)){ install.packages('ggplot')}
+if( !require(plotly)){install.packages('plotly')}
+library("gridExtra", "grid", "ggplot2")
+```
+
+## Ejercicios del libro de Carmona
+
+1.  Para la base de datos crabs paquete MASS de R:
+
+    a.  Estudiar la base de datos con la ayuda y las funciones str y summary
+
+```{r}
+library(MASS)
+data(crabs)
+str(crabs)
+```
+
+Las dos primeras columnas son datos de tipo factor, el primero se refiere a la especie con valores B u O y el segundo al sexo con los valores "F" o "M" codificados en 1 y dos.
+
+```{r}
+summary(crabs)
+```
+
+El valor índice puede ser eliminado, pues no aporta información y R actúa con el como si fuera una valor cuantitativo más.
+
+```         
+ c.  Calcular valores de estadística descriptiva.
+```
+
+```{r}
+apply(crabs[,4:8],MARGIN = 2,fivenum,na.rm=TRUE)
+
+```
+
+Ahora separando por sexo y por especie
+
+```{r}
+crabs4a8<-crabs[,4:8]
+apply(crabs4a8, MARGIN =2,FUN = tapply, INDEX=crabs$sex, mean)
+apply(crabs4a8, MARGIN =2,FUN = tapply, INDEX=crabs$sex, median)
+apply(crabs4a8, MARGIN =2,FUN = tapply, INDEX=crabs$sex, sd)
+apply(crabs4a8, MARGIN =2,FUN = tapply, INDEX=crabs$sp, mean)
+apply(crabs4a8, MARGIN =2,FUN = tapply, INDEX=crabs$sp, median)
+apply(crabs4a8, MARGIN =2,FUN = tapply, INDEX=crabs$sp, sd)
+
+
+```
+
+```         
+e.  Hallar las matrices de varianzas y covarianzas según especie y sexo.
+```
+
+```{r}
+round(var(crabs4a8),2)
+cat("\n")
+round(var(crabs4a8[crabs$sex=="F",]),2);cat("\n")
+round(var(crabs4a8[crabs$sex=="M",]),2);cat("\n")
+round(var(crabs4a8[crabs$sp=="O",]),2);cat("\n")
+round(var(crabs4a8[crabs$sp=="B",]),2)
+```
+
+```         
+f.  Comparar cada especie con medidas globales de variabilidad.
+```
+
+Realicemos una análisis de varianza total = suma de las varianzas (diagonal)
+
+```{r}
+sum(diag(var(crabs4a8)))
+```
+
+Análisis de

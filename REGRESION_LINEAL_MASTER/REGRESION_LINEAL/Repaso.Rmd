@@ -1,0 +1,133 @@
+---
+title: "Repaso Faraway"
+author: "Felipe Yebes"
+date: "`r Sys.Date()`"
+output:
+  html_document: default
+  pdf_document: 
+    toc: yes
+    fig_caption: yes
+    number_sections: yes
+    latex_engine: xelatex
+    keep_tex: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+install.packages("faraway","ggplot2","HistData")
+library("gridExtra", "grid", "ggplot2")
+
+```
+
+## Ejercicio 1
+
+```{r}
+data(pima, package="faraway")
+head(pima)
+#Resumen#
+summary(pima)
+```
+
+Valores mínimos de 0 en la diástolica nos indican que algo anda mal.
+Ordenamos (clasificar, sort) los valores
+
+```{r}
+sort(pima$diastolic)
+```
+
+Establecemos los valores 0 como NA.
+
+```{r}
+pima$glucose[pima$glucose==0]<- NA
+pima$diastolic[pima$diastolic==0] <- NA
+pima$triceps[pima$triceps==0]<- NA
+pima$insulin[pima$insulin==0]<- NA
+```
+
+Pasar la variable test a factor
+
+```{r}
+pima$test<-factor(pima$test)
+summary(pima$test)
+```
+
+Ponemos datos descriptivos
+
+```{r}
+levels(pima$test)<-c("negative","positive")
+summary(pima)
+```
+
+Graficamos
+
+```{r}
+par(mfrow=c(1,3))
+hist(pima$diastolic,xlab="Diastolic",main="")
+plot(density(pima$diastolic,na.rm = T),main = "")
+plot(sort(pima$diastolic),ylab="Sorted Diastolic")
+```
+
+```{r}
+par(mfrow=c(1,2))
+plot(diabetes~diastolic,pima)
+plot(diabetes~test,pima)
+```
+
+Pero las gráficas aumentan sus posibilidades con ggplot
+
+```{r}
+require(ggplot2)
+g1<-ggplot(pima,aes(x=diastolic))+geom_histogram(bins = 30,na.rm=TRUE)
+g2<-ggplot(pima,aes(x=diastolic))+geom_density(na.rm=TRUE)
+g3<-ggplot(pima,aes(x=diastolic,y=diabetes))+geom_point(na.rm=TRUE)
+grid.arrange(g1, g2,g3, ncol = 3)
+```
+
+Mezcla de gráficas
+
+```{r}
+g4<-ggplot(pima,aes(x=diastolic,y=diabetes, shape=test))+geom_point(na.rm=TRUE)+theme(legend.position = "top",legend.direction ="horizontal")
+g5<-ggplot(pima,aes(x=diastolic,y=diabetes))+geom_point(na.rm=TRUE,size=1)+facet_grid(~ test)
+
+grid.arrange(g4,g5,ncol=2)
+```
+
+Regresión lineal
+
+```{r}
+data(manilius, package = "faraway")
+head(manilius)
+```
+
+Agrupamos los datos
+
+```{r}
+moon3<-aggregate(manilius[,1:3],list(manilius$group),sum)
+moon3
+```
+
+Resolver las tres ecuaciones con tres incógnitas
+
+```{r}
+solve(cbind(9,moon3$sinang,moon3$cosang), moon3$arc)
+```
+
+El orden de los datos es alpha, beta e y
+
+Por modelos lineales.
+regresión lineal.
+
+```{r}
+lmod<-lm(arc~sinang+cosang, manilius)
+coef(lmod) #Coeficientes de lm
+```
+
+Con el paquete datos historicos
+
+```{r}
+data(GaltonFamilies, package = "HistData")
+plot(childHeight~midparentHeight,GaltonFamilies)
+lmod2<-lm(childHeight~midparentHeight, GaltonFamilies)
+coef(lmod2)
+abline(lmod2)
+```

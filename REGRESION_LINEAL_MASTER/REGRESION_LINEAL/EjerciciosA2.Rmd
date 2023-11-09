@@ -1,0 +1,805 @@
+---
+title: "EjerciciosA2"
+author: "Felipe Yebes"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    number_section: no
+    latex_engine: tinytex
+    toc: yes
+  pdf document:
+    number_section: no
+    latex_engine: tinytex
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message= FALSE,warning=FALSE}
+if( !require(faraway)){ install.packages('faraway', dependencies = TRUE)}
+if( !require(tydiverse)){ install.packages('tidyverse', dependencies = TRUE)}
+if( !require(plotly)){install.packages('plotly', dependencies = TRUE)}
+if(!require(GGally)){install.packages("GGally", dependencies = TRUE)}
+if(!require(psych)){install.packages('psych', dependencies = TRUE)}
+library("gridExtra", "grid")
+library("ggplot2")
+```
+
+## Ejercicios del libro de Faraway
+
+1.  Ejercicio 1 cap.2 pag.30
+
+    a)  What percentage of variation in the reponse is explained by these predictors?
+
+    En los ejercicios anteriores se realizó un análisis gráfico de los datos que se reproduce aquí.
+
+    ```{r}
+    data(teengamb,package="faraway")
+    head(teengamb)
+    summary(teengamb)
+    ```
+
+    Tal y como aparece en el estudio la variable sexo se debería convertir a factor, la variable status se refiere una puntuación que valora el estatus socioeconómico de los padres en relación a su ocupación, income son los ingresos semanales, verbal es la puntuación en un test verbal y gamble son los gastos en juegos de azar.
+
+    En el resumen, salvo en el sexo y en gastos no parece haber datos con valores de 0, aunque son bastante lógicos, sería necesario comprobar el numero de valores faltantes.
+
+    ```{r}
+    apply(X = is.na(teengamb), MARGIN = 2, FUN = sum)
+    ```
+
+    Vemos que no hay valores faltantes y que los valores numéricos son hasta cierto punto coherentes.
+
+    Se convierte en factor el parámetro sexo y se adjudican niveles
+
+    ```{r}
+    teengamb$sex<-factor(teengamb$sex)
+    levels(teengamb$sex)<-c("Masc","Fem")
+    teengamb$sex
+    summary(teengamb)
+    ```
+
+    Estudio gráfico
+
+    ```{r}
+    g1<-ggplot(teengamb,aes(x=status))+geom_histogram(bins = 30)
+    g2<-ggplot(teengamb,aes(x=status))+geom_density()
+    g3<-ggplot(teengamb,aes(x=status,y=gamble))+geom_point()
+    g4<-ggplot(teengamb,aes(x=income))+geom_histogram(bins = 30)
+    g5<-ggplot(teengamb,aes(x=income))+geom_density()
+    g6<-ggplot(teengamb,aes(x=income,y=gamble))+geom_point()
+    g7<-ggplot(teengamb,aes(x=verbal))+geom_histogram(bins = 30)
+    g8<-ggplot(teengamb,aes(x=verbal))+geom_density()
+    g9<-ggplot(teengamb,aes(x=verbal,y=gamble))+geom_point()
+    grid.arrange(g1,g2,g3,g4,g5,g6,g7,g8,g9, ncol = 3)
+    ```
+
+Se realiza ahora gráfica tipo scarlett plot matrix con el paquete gráfico base y con GGally
+
+```{r}
+pairs(teengamb[,2:4],col = "green",labels = c("Estatus", "Ingresos", "Gastos"), main = "Este es un gráfico scarlett con el paquete básico")
+```
+
+Con GGally
+
+```{r}
+library(GGally)
+ggpairs(teengamb, aes(colour = sex, alpha = 0.4))
+```
+
+Parece que las mayores correlaciones con la variable respuesta o dependiente se dan en el parámetro ingreso.
+De todas maneras se realiza un modelo en el que están incluidas todas la variables
+
+```{r}
+modelolineal<-lm(gamble~sex+status+income+verbal,data=teengamb)
+summary(modelolineal)
+```
+
+Se realiza un primer estudio gráfico para comprobar los supuestos del modelo
+
+```{r}
+par(mfrow=c(2, 2))
+plot(modelolineal, las=1, col="green")
+```
+
+Se observan una serie de datos outliers que pueden estar influyendo mucho en el modelo.
+En el gráfico Q-Q se pueden ver colas
+
+-   El porcentaje de variación explicado por los predictores viene dado por R^2^ =0,5267, 52%.
+
+    -   Este valor de R^2^ es bajo.
+
+-   ¿Que observación tiene el residuo positivo más grande?
+
+    -   Para ver los parámetros que podemos visualizar del modelo se puede realizar
+
+```{r}
+        # Para ver la información que podemos obtener del objeto ( modelo ) modelolineal
+names(modelolineal)
+```
+
+De aquí visualizamos los datos de los valores residuales y obtenemos el máximo.
+
+```{r}
+modelolineal$residuals
+#Vemos el máximo con la función max()
+max(modelolineal$residuals)
+```
+
+Que se corresponde con la entrada 24
+
+-   Muestra la media y la mediana de los residuos..
+
+A partir de la información obtenida en el apartado anterior...
+
+```{r}
+cat("La media de los residuos del modelo es ",mean(modelolineal$residuals),"\n" )
+ 
+cat("La mediana de los residuos del modelo es ", median(modelolineal$residuals))
+```
+
+-   Calcule la correlación de los residuos con los valores ajustados.
+
+```{r}
+#Obtenemos los residuos y los valores del modelo .
+cor(modelolineal$residuals, modelolineal$fitted.values)
+```
+
+-   Correlación de los residuos con los ingresos
+
+```{r}
+cor(modelolineal$residuals,teengamb$income)
+```
+
+-   Predicciones del gasto en juego comparadas por sexo.
+
+    Se pueden obtener a partir del resumen del modelo.
+    Cruzando la columna estimado con sexo.
+    Esto da -22.11833\$
+
+2.  El dataset uswages se ha obtenido de una muestra del estudio de población .......
+
+```{r}
+```
+
+```{r}
+data("uswages",package="faraway")
+head(uswages)
+str(uswages)
+```
+
+```{r}
+```
+
+Según <https://rdrr.io/cran/faraway/> el conjunto de datos sobre el sueldo semanal consta de 11 parámetros de los que solo los 3 primeros son cuantitativos, mientras que el resto son factoriales dicotomicos.
+
+El nº de datos faltantes es
+
+```{r}
+apply(X = is.na(uswages), MARGIN = 2, FUN = sum)
+```
+
+Realizaremos la conversión de los últimos 7 parámetros a factor.
+
+```{r}
+uswages$race<-factor(uswages$race)
+levels(uswages$race)<-c("Negro","Blanco")
+uswages$smsa<-factor(uswages$smsa)
+levels(uswages$smsa)<-c("Area","NotArea")
+uswages$ne<-factor(uswages$ne)
+levels(uswages$ne)<-c("NE","NotNE")
+uswages$mw<-factor(uswages$mw)
+levels(uswages$mw)<-c("MW","NotMW")
+uswages$we<-factor(uswages$we)
+levels(uswages$we)<-c("WE","NotWE")
+uswages$so<-factor(uswages$so)
+levels(uswages$so)<-c("SO","NotSO")
+uswages$pt<-factor(uswages$pt)
+levels(uswages$pt)<-c("pt","Notpt")
+```
+
+Observemos los datos a partir de gráficas
+
+```{r}
+g1<-ggplot(uswages,aes(x=educ))+geom_histogram(bins = 30)
+g2<-ggplot(uswages,aes(x=educ))+geom_density()
+g3<-ggplot(uswages,aes(x=educ,y=wage))+geom_point()
+g4<-ggplot(uswages,aes(x=exper))+geom_histogram(bins=30)
+g5<-ggplot(uswages,aes(x=exper))+geom_density()
+g6<-ggplot(uswages,aes(x=exper,y=wage))+geom_point()
+grid.arrange(g1,g2,g3,g4,g5,g6,ncol=3)
+g7<-ggplot(uswages,aes(x=educ,y=wage, shape=race))+geom_point(na.rm=TRUE)+theme(legend.position = "top",legend.direction ="horizontal")
+g8<-ggplot(uswages,aes(x=educ,y=wage))+geom_point(na.rm=TRUE,size=1)+facet_grid(~ race)
+g9<-ggplot(uswages,aes(x=exper,y=wage, shape=race))+geom_point(na.rm=TRUE)+theme(legend.position = "top",legend.direction ="horizontal")
+g10<-ggplot(uswages,aes(x=exper,y=wage))+geom_point(na.rm=TRUE,size=1)+facet_grid(~ race)
+grid.arrange(g7,g8,g9,g10,ncol=2)
+```
+
+```{r}
+library(GGally)
+ggpairs(uswages[,1:4], aes(colour = race, alpha = 0.4))
+ggpairs(uswages[,c(1,2,3,5)], aes(colour = smsa, alpha = 0.4))
+ggpairs(uswages[,c(1,2,3,10)], aes(colour = pt, alpha = 0.4))
+ggpairs(uswages[,c(1,2,3,6,7,8,9)], aes(alpha = 0.4))
+```
+
+Se crea el modelo en base los predictores años de experiencia y educación
+
+modelosalario
+
+```{r}
+modelosalario<-lm(wage~exper+educ,data=uswages)
+summary(modelosalario)
+```
+
+El parámetro porcentaje de varianza explicada o o coeficiente de determinación R^2^ es 0.135 , muy bajo.
+
+Interpretación del coeficiente de regresión para años de educación
+
+```{r}
+modelosalario$coefficients
+```
+
+Puesto que el intervalo de años de educación es relativamente similar, solo varia en el doble a los años de experto
+
+```{r}
+cat("maximo de años de educación",max(uswages$educ),"\n")
+cat("maximo de años de experiencia",max(uswages$exper))
+
+```
+
+y el coeficiente varía en cinco veces, los años de educación son mucho más importantes en el salario.
+
+-   El nuevo modelo con el logaritmo
+
+    ```{r}
+    modelosalariolog<-lm(log(wage)~exper+educ,data=uswages)
+    summary(modelosalariolog)
+    modelosalariolog$coefficients
+    ```
+
+El modelo esta mucho más ajustado con un R^2^ 0.66.
+El coeficiente de los años de educación está mucho más cercano al de los años de experiencia.
+El modelo se ajusta mucho más a la realidad.
+
+3.  Investigación sobre algunos datos para comparar los métodos de cálculo de coeficientes
+
+```{r}
+set.seed(1234)
+x<-1:20
+y<-x+rnorm(20)
+#Utilizamos el método directo.
+#Guardamos los valores de los predictores en un vector
+x1<-cbind(1,x,x^2)
+#Formula para encontrar el coeficiente de regresión a partir de las indicaciones de la página 19 del libro de Faraway.
+B<-solve(t(x1) %*% x1) %*% t(x1)%*%y
+
+#Creamos un polinomio de grado dos con la función lm
+mdel2<-lm(y~x+I(x^2))
+# A partir del modelo creado se obtienen los coeficientes
+coef_B<-coef(mdel2)
+
+```
+
+Ahora comparamos los parámetros obtenidos
+
+```{r}
+print(B)
+print(coef_B)
+```
+
+Como vemos los resultados en un polinomio de grado dos son prácticamente los mismos.
+Veamos un polinomio de grado 3
+
+```{r}
+x3<-cbind(1,x,x^2,x^3)
+#Formula para encontrar el coeficiente de regresión a partir de las indicaciones de la página 19 del libro de Faraway.
+B3<-solve(t(x3) %*% x3) %*% t(x3)%*%y
+
+#Creamos un polinomio de grado dos con la función lm
+mdel3<-lm(y~x+I(x^2)+I(x^3))
+
+# A partir del modelo creado se obtienen los coeficientes
+coef_B3<-coef(mdel3)
+#Revisamos parámetros
+print(B3)
+print(coef_B3)
+```
+
+No falla
+
+```{r}
+x4<-cbind(1,x,x^2,x^3,x^4)
+#Formula para encontrar el coeficiente de regresión a partir de las indicaciones de la página 19 del libro de Faraway.
+B4<-solve(t(x4) %*% x4) %*% t(x4)%*%y
+
+#Creamos un polinomio de grado dos con la función lm
+mdel4<-lm(y~x+I(x^2)+I(x^3)+I(x^4))
+
+# A partir del modelo creado se obtienen los coeficientes
+coef_B4<-coef(mdel4)
+#Revisamos parámetros
+print(B4)
+print(coef_B4)
+```
+
+Con x\^5
+
+```{r}
+x5<-cbind(1,x,x^2,x^3,x^4,x^5)
+#Formula para encontrar el coeficiente de regresión a partir de las indicaciones de la página 19 del libro de Faraway.
+B5<-solve(t(x5) %*% x5) %*% t(x5)%*%y
+#Creamos un polinomio de grado dos con la función lm
+mdel5<-lm(y~x+I(x^2)+I(x^3)+I(x^4)+I(x^5))
+# A partir del modelo creado se obtienen los coeficientes
+coef_B5<-coef(mdel5)
+#Revisamos parámetros
+print(B5)
+print(coef_B5)
+```
+
+Con grado 6
+
+```{r}
+"
+x6<-cbind(1,x,x^2,x^3,x^4,x^5,x^6)
+#Formula para encontrar el coeficiente de regresión a partir de las indicaciones de la página 19 del libro de Faraway.
+B6<-solve(t(x6) %*% x6) %*% t(x6)%*%y
+#Creamos un polinomio de grado dos con la función lm
+mdel6<-lm(y~x+I(x^2)+I(x^3)+I(x^4)+I(x^5)+I(x^6))
+# A partir del modelo creado se obtienen los coeficientes
+coef_B6<-coef(mdel6)
+#Revisamos parámetros
+print(B6)
+print(coef_B6)"
+```
+Error in solve.default(t(x6) %*% x6) : 
+  sistema es computacionalmente singular: número de condición recíproco = 3.54243e-18
+
+El error nos da por sistema singular, es decir la matriz no puede ser transpuesta
+
+4.  El dataset prostata viene de un estudio con 97 hombres con cancer de próstata que han recibido una prostatectomía radical.....
+
+```{r}
+data("prostate",package="faraway")
+head(prostate)
+str(prostate)
+# El valor svi es una variable dicotómica por lo que lo convertimos en un factor.
+
+prostate$svi<-factor(prostate$svi)
+levels(prostate$svi)<-c("No","Si")
+
+```
+
+Generamos el primer modelo
+
+```{r}
+md1_prostate<-lm(lpsa~lcavol,data=prostate)
+summary(md1_prostate)
+```
+
+```{r}
+md2_prostate<-lm(lpsa~lcavol+lweight,data=prostate)
+md3_prostate<-lm(lpsa~lcavol+lweight+svi,data=prostate)
+md4_prostate<-lm(lpsa~lcavol+lweight+svi+lbph,data=prostate)
+md5_prostate<-lm(lpsa~lcavol+lweight+svi+lbph+age,data=prostate)
+md6_prostate<-lm(lpsa~lcavol+lweight+svi+lbph+age+lcp,data=prostate)
+md7_prostate<-lm(lpsa~lcavol+lweight+svi+lbph+age+lcp+pgg45,data=prostate)
+md8_prostate<-lm(lpsa~lcavol+lweight+svi+lbph+age+lcp+pgg45+gleason,data=prostate)
+
+```
+
+Obtengamos los ERS y los R^2^
+
+```{r}
+RSEVector<-c(summary(md1_prostate)$sigma,summary(md2_prostate)$sigma,summary(md3_prostate)$sigma,summary(md4_prostate)$sigma,summary(md5_prostate)$sigma,summary(md6_prostate)$sigma,summary(md7_prostate)$sigma,summary(md8_prostate)$sigma)
+R2Vector<-c(summary(md1_prostate)$r.squared,summary(md2_prostate)$r.squared,summary(md3_prostate)$r.squared,summary(md4_prostate)$r.squared,summary(md5_prostate)$r.squared,summary(md6_prostate)$r.squared,summary(md7_prostate)$r.squared,summary(md8_prostate)$r.squared)
+RSEVector
+R2Vector
+
+```
+
+Graficamos
+
+```{r}
+plot(RSEVector,type = "o",col="green",main="Residual Standard Error")
+plot(R2Vector, type="o", col="blue",main="R²")
+```
+
+Como se ve al aumentar el número de parámetros se aumenta la fiabilidad del modelo.
+
+5.  Comparar las regresiones que se obtienen al intercambiar lpsa y lcavol como variables dependientes.
+
+```{r}
+lpsa_Dep_model<-lm(lpsa~lcavol, prostate)
+lcavol_Dep_model<-lm(lcavol~lpsa,prostate)
+# Graficamos las regresiones
+plot(x=prostate$lcavol,y=prostate$lpsa, type='p', main="Comparación modelos lpsa vs lcavol", xlab="Vol. del cancer", ylab="Antígeno prostatico")
+abline(lpsa_Dep_model, col="green")
+
+abline(a=-coef(lcavol_Dep_model)[1]/coef(lcavol_Dep_model)[2],b=1/coef(lcavol_Dep_model)[2] ,col ="red")
+```
+
+Para verificar el punto de corte, se resuelve el sistema de ecuaciones
+
+```{r}
+Ter_ind<-c(coef(lcavol_Dep_model)[1],c(coef(lpsa_Dep_model)[1]))
+M_Coef<-matrix(c(1,-coef(lpsa_Dep_model)[2],-coef(lcavol_Dep_model)[2],1),ncol=2,nrow=2,byrow=F)
+solve(M_Coef,Ter_ind)
+```
+
+6.  Treinta muestras de queso cheddar fueron analizadas....
+
+Siguiendo los pasos de la página 19 del libro de Faraway
+
+```{r}
+data("cheddar",package="faraway")
+head(cheddar)
+str(cheddar)
+```
+
+Realizamos el modelo lineal
+
+```{r}
+model_ches<-lm(taste~Acetic+H2S+Lactic,cheddar)
+summary(model_ches)
+```
+
+Los coeficientes de la regresión son
+
+```{r}
+print(model_ches$coefficients)
+```
+
+Obtenemos la matriz
+
+```{r}
+
+Rcuadrado<-(cor(cheddar$taste,model_ches$fitted.values))**2
+print(Rcuadrado)
+```
+
+Se correspondee con R².
+
+Creemos un modelos sin intercepto.
+
+```{r}
+model_ches<-lm(taste~-1+Acetic+H2S+Lactic,cheddar)
+summary(model_ches)
+```
+
+En este caso R^2^ es de 0.8877
+
+Calculo de los coeficientes de regresión por el método QR.
+
+```{r}
+x<-model.matrix(~Acetic+H2S+Lactic,cheddar)
+y<-cheddar$taste
+qrx<-qr(x)
+qr.Q(qrx)
+(f<-t(qr.Q(qrx))%*%y)
+backsolve(qr.R(qrx),f)
+```
+
+7.  Un experimento fue desarrollado para determinar el efecto de cuatro factores en la resistividad de una oblea de semiconductor....
+
+```{r}
+data("wafer",package="faraway")
+head(wafer)
+str(wafer)
+```
+
+```{r}
+model_wafer<-lm(resist~x1+x2+x3+x4,wafer)
+summary(model_wafer)
+xwafer<-model.matrix(~x1+x2+x3+x4,wafer)
+```
+
+Los parámetros se han determinado a partir de signos + o -.
+
+```{r}
+cor(xwafer)
+cor.plot(xwafer)
+```
+
+Indica que los parámetros son independientes.
+
+Falta opción 3
+
+Redefinir el problema sin x4
+
+```{r}
+model_wafer_sinx4<-lm(resist~x1+x2+x3,wafer)
+summary(model_wafer_sinx4)
+```
+
+Vemos que si bien al desaparecer la x4 pasa de un valor ajustado de R^2^ =0.7267 a Adjust R^2^ =0.7221 por lo que podemos deducir que la importancia de este parámetro en más bien menor.
+
+8.  Un experimento fue diseñado para examinar factores que pueden afectar a la altura de las ballestas en la suspensión de los camiones.
+
+```{r}
+data("truck",package="faraway")
+head(truck)
+str(truck)
+```
+
+Cambiamos los factores a valores -1, 1
+
+```{r}
+truck$B<-sapply(truck$B, function(x) ifelse(x=="-",-1,1))
+truck$C<-sapply(truck$C, function(x) ifelse(x=="-",-1,1))
+truck$D<-sapply(truck$D, function(x) ifelse(x=="-",-1,1))
+truck$E<-sapply(truck$E, function(x) ifelse(x=="-",-1,1))
+truck$O<-sapply(truck$O, function(x) ifelse(x=="-",-1,1))
+head(truck)
+str(truck)
+```
+
+-   Haz una regresión lineal con los cinco factores
+
+```{r}
+model_four_truck<-lm(height~B+C+D+E+O,truck)
+summary(model_four_truck)
+model.matrix(~B+C+D+E+O,truck)
+cat("Los coeficientes son:\n")
+model_four_truck$coefficients
+cor.plot(truck)
+```
+
+-   Compara la regresión lineal con otra con solo los cuatro primeros factores.
+
+```{r}
+model_four_truck<-lm(height~B+C+D+E,truck)
+summary(model_four_truck)
+cat("Los coeficientes son:\n")
+model_four_truck$coefficients
+```
+
+Los coeficientes son casi todos iguales, cosa muy extraña, sin embargo el valor ajustado de R^2^ baja muchísimo.
+Las matriz de correlaciones visualiza un gran correlación de los factores B y E con la altura.
+
+-   Crea una columna A suma de las otras columnas hasta la E
+
+```{r}
+truck$A<-truck$B+truck$E+truck$D+truck$E
+model_six_truck<-lm(height~A+B+C+D+E+O, truck)
+summary(model_six_truck)
+model_six_truck$coefficients
+```
+
+Existe multicolinealidad de las variables y el paquete elimina automáticamente del modelo las variables que estima son menos informativas.
+
+-   Extraer la matriz X del modelo anterior
+
+```{r}
+x_six<-model.matrix(~A+B+C+D+E+O,truck)
+y_six<-truck$height
+"
+xtxi_six<-solve(t(x_six) %*% x_six)
+#Obtenemos los coeficientes
+xtxi_six %*% t(x_six) %*% y"
+```
+
+Me dice que la matriz no es invertible, seguramente por la multicolinealidad.
+
+-   Use el método QR de descomposición e intente calcular B.
+
+```{r}
+"
+#Calculamos la matriz Q
+qrx<-qr(x_six)
+#Calculamos f
+#(f<-t(qr.Q(qrx)%*%y_six))
+
+#Nuevo metodo
+QR = qr(x_six)
+
+Q = qr.Q(QR,complete = TRUE) 
+Ra = qr.R(QR,complete = TRUE) 
+
+Qf = qr.Q(QR,complete = FALSE) 
+R  = qr.R(QR,complete = FALSE) 
+dim(x_six)
+p=ncol(x_six)
+n=nrow(x_six)-1
+
+f = matrix((t(Q)%*%y_six)[1:p,1],p,1)
+r = matrix((t(Q)%*%y_six)[(p+1):n,1],n-p,1)
+
+# --------------------------------------------
+B_hat = solve(R)%*%f
+B_hat
+SCR = t(r)%*%r
+
+SCT = t(y_six)%*%y_six- n*(mean(Y)^2)
+
+B1_qr    = B_hat[1,1]
+B2_qr    = B_hat[2,1]
+B3_qr    = B_hat[3,1]
+B4_qr    = B_hat[4,1]
+s_qr     = sqrt(SCR/(n-p))
+R2_qr    = 1 -  SCR/SCT
+"
+```
+
+Sigue dando que el sistema a resolver es singular.
+
+Estime los coeficientes por qr.coef
+
+```{r}
+qr.coef(qr(x_six),y_six)
+```
+
+Obtenemos ahora los mismos coeficientes que con lm
+
+## Ejercicios del libro de Carmona
+
+1.  Una variable Y toma los valores .....
+
+-   Según Carmona , pag 18, "un modelo es lineal si lo es para los parámetros" por lo que el último modelo, c , no es lineal.
+
+-   En este caso solo veo un vector de diseño c(1,2,3).
+
+    a)  1 1 3
+
+    b)  1 1 e^2^
+
+    c)No es lineal.
+
+2.  Cuatro objetos cuyos pesos exactos son.....
+
+    ```{r}
+    ca2=data.frame(y=c(9.2,8.3,5.4,-1.6,8.7,3.5),b1=c(1,1,1,1,1,1),b2=c(1,-1,0,0,0,1),b3=c(1,1,0,0,1,-1),b4=c(1,1,1,-1,1,1))
+    ca2
+    md_pesas<-lm(y~b1+b2+b3+b4,ca2)
+    summary(md_pesas)
+    ```
+
+    Nos encontramos con que el parámetro B1 es una combinación lineal de otros vectores por lo que da lugar a singularidades.
+    La función de R lm() lo obvia.
+    La varianza del error es el error residual estandar 0.2893
+
+3.  En un modelo lineal la matriz de diseño es ....
+    hayar la expresión general de las funciones paramétricas estimables.
+
+    ```{r}
+    C3<-data.frame(c(1,1,1,1,1),c(1,0,1,0,0),c(1,1,1,0,0),c(1,0,1,1,1))
+    C3_M<-data.matrix(C3)
+    qr(C3_M)$rank
+    ```
+
+    Por lo que cogemos las ecuaciones y conformamos un sistema del que el resultado es
+
+    a+b-c-d=0
+
+4.  Consideremos el modelo lineal....
+
+-   ¿Es la función 𝛙=B1+B2+B3 estimable?
+
+Una función es estimable si es combinación lineal de las ecuaciones que conforman el modelo.
+En este caso no es una combinación lineal de la matriz reducida del modelo lineal.
+Se a de tener en cuenta que la primera y la última linea de la matriz de diseño son la misma.
+
+-   Siguiendo con el mismo razonamiento cualquier combinación lineal de la matriz reducida
+
+```{r}
+a<-data.frame(c(1,1),c(1,0),c(0,1))
+a
+```
+
+Una combinación lineal de las dos filas daría
+
+$$
+(a_{11}+a_{21})*\alpha_{1}+(a_{12}+a_{22})*\alpha_{2}+(a_{13}+a_{23})*\alpha_{3}
+$$
+
+Lo que correspondería a la ecuación propuesta.
+
+-   La matriz es
+
+```{r}
+C_A<-data.frame(c(1,1,1,1,1,1),c(1,1,0,0,0,0),c(0,0,1,1,0,0),c(0,0,0,0,1,1),c(1,0,1,0,1,0),c(0,1,0,1,0,1))
+C_AM<-data.matrix(C_A)
+C_AM
+cat("El rango de la matriz es ")
+
+```
+
+```{r}
+qr(C_A)$rank
+```
+
+El rango de la matriz es 4.
+
+```{r}
+C_Aa<-rbind(C_A,c(0,1,1,0,0,0))
+qr(C_Aa)$rank
+```
+
+La fila añadida no es la combinación lineal de las filas preexistentes y el rango sube 1.
+Por lo tanto no es estimable
+
+-   En el siguiente caso B1-B2
+
+    ```{r}
+    C_Ab<-rbind(C_A,c(0,0,0,1,-1,0))
+    qr(C_Ab)$rank
+    ```
+
+Estamos en el mismo caso.
+
+-   Es el mismo caso.
+
+-   ¿Es 6u+2a1+2a2+2a3+3b1+3b2 estimable?
+
+    ```{r}
+    C_Ac<-rbind(C_A,c(6,2,2,2,3,3))
+    qr(C_Ac)$rank
+    ```
+
+El rango es 4 por lo que es combinación lineal de las filas preexistentes y es estimable.
+
+-   Caso a1-2a2+a3
+
+    ```{r}
+    C_Ad<-rbind(C_A,c(1,2,1,0,0,0))
+    qr(C_Ad)$rank
+    ```
+
+Supera en uno el rango previo, no es combinación lineal de las filas preexistentes y no es estimable.
+
+-   Hallar la covarianza entre los estimadores lineales MC de las funciones paramétricas B1-B2 y a1-a2, si estas son estimables
+
+    Para la primera
+
+    ```{r}
+    C_Ag<-rbind(C_A, c(0,0,0,0,1,-1))
+    qr(C_Ag)$rank
+    ```
+
+Tenemos entonces que la primera es estimable.
+
+```{r}
+C_Ag2<-rbind(C_A, c(0,1,-1,0,0,0))
+qr(C_Ag2)$rank
+```
+
+También es estimable.
+
+```{r}
+
+```
+
+6.  Se propone una matriz por trayectos y no por poblaciones
+
+```{r}
+camionero<-data.frame(km=c(533,583,1111,1069),AB=c(2,0,2,4),AC=c(1,1,1,2),BC=c(0,1,1,0))
+
+str(camionero)
+mat_Cam<-data.matrix(camionero)
+qr(mat_Cam)$rank
+```
+
+El rango es 4.
+Se genera el modelo.
+
+```{r}
+mod_cam<-lm(km~AB+AC+BC,camionero)
+summary(mod_cam)
+mod_cam
+```
+
+```{r}
+mod_cam_mdis<-model.matrix(mod_cam)
+mod_cam_mdis
+```
+
+Los parámetros que se estiman son ..
+
+```{r}
+
+mod_cam$coefficients
+```

@@ -1,0 +1,162 @@
+---
+title: "TareaA1_Regresion_Felipe_Yebes"
+author: "Felipe Yebes"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    number_section: no
+    latex_engine: tinytex
+    toc: yes
+  pdf document:
+    number_section: no
+    latex_engine: tinytex
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if( !require(faraway)){ install.packages('faraway')}
+if( !require(ggplot2)){ install.packages('ggplot')}
+if( !require(plotly)){install.packages('plotly')}
+library("gridExtra", "grid", "ggplot2")
+```
+
+## Ejercicios libro Faraday
+
+1.  El paquete de datos Teengamb....
+
+Según la web <https://rdrr.io> el estudio teengamb es un estudio realizado en el Reino Unido sobre los gastos en juegos de azar de los adolescentes.
+
+```{r}
+data(teengamb,package="faraway")
+head(teengamb)
+summary(teengamb)
+```
+
+Tal y como aparece en el estudio la variable sexo se debería convertir a factor, la variable status se refiere una puntuación que valora el estatus socioeconómico de los padres en relación a su ocupación, income son los ingresos semanales, verbal es la puntuación en un test verbal y tamble son los gastos en juegos de azar.
+
+En el resumen, salvo en el sexo y en gastos no parece haber datos con valores de 0, aunque son bastante lógicos, sería necesario comprobar el numero de valores faltantes.
+
+```{r}
+apply(X = is.na(teengamb), MARGIN = 2, FUN = sum)
+```
+
+Vemos que no hay valores faltantes y que los valores numéricos son hasta cierto punto coherentes.
+
+```{r}
+teengamb$sex<-factor(teengamb$sex)
+levels(teengamb$sex)<-c("Fem","Masc")
+teengamb$sex
+```
+
+```{r}
+summary(teengamb)
+```
+
+Estudio gráfico
+
+```{r}
+
+g1<-ggplot(teengamb,aes(x=status))+geom_histogram(bins = 30)
+g2<-ggplot(teengamb,aes(x=status))+geom_density()
+g3<-ggplot(teengamb,aes(x=status,y=gamble))+geom_point()
+g4<-ggplot(teengamb,aes(x=income))+geom_histogram(bins = 30)
+g5<-ggplot(teengamb,aes(x=income))+geom_density()
+g6<-ggplot(teengamb,aes(x=income,y=gamble))+geom_point()
+g7<-ggplot(teengamb,aes(x=verbal))+geom_histogram(bins = 30)
+g8<-ggplot(teengamb,aes(x=verbal))+geom_density()
+g9<-ggplot(teengamb,aes(x=verbal,y=gamble))+geom_point()
+grid.arrange(g1,g2,g3,g4,g5,g6,g7,g8,g9, ncol = 3)
+```
+
+Se ve claro que un nivel socioeconómico bajo se asocia con gran cantidad de personas que consumen juegos de azar, sin embargo el gasto mayor se da en jóvenes de alto poder adquisitivo , como es de esperar.
+
+Los gastos altos también se dan en individuos con menor indice en el test verbal, sería interesante ver si los individuos con alto consumo son de nivel socieconómico bajo y alto nivel de ingresos.
+
+```{r}
+
+plot_ly(teengamb, x=~income, y=~verbal, z=~gamble, type="scatter3d", mode="markers", color=~gamble)
+plot_ly(teengamb, x=~status, y=~verbal, z=~gamble, type="scatter3d", mode="markers", color=~gamble)
+
+```
+
+Parece que una serie de individuos coinciden con alto nivel de ingresos pero nivel socioecónomico medio-bajo si tienen un gran gasto en juegos de azar, poro no sería concluyente por lo que sería interesante completar el estudio estadístico.
+
+2.  The dataset uswages is drawn as a sample form the Current Population Survey en
+
+```{r}
+ data("uswages",package="faraway")
+head(uswages)
+```
+
+Según <https://rdrr.io/cran/faraway/> el conjunto de datos sobre el sueldo semanal consta de 11 parámetros de los que solo los 3 primeros son cuantitativos, mientras que el resto son factoriales dicotomicos.
+
+```{r}
+uswages$Localy <- names(uswages)[6:9][max.col(uswages[6:9])]
+head(uswages)
+```
+
+El numero de datos faltantes es...
+
+```{r}
+apply(X = is.na(uswages), MARGIN = 2, FUN = sum)
+```
+
+Realizaremos las conversión de los últimos 7 parámetros a factor.
+
+```{r}
+uswages$race<-factor(uswages$race)
+levels(uswages$race)<-c("Negro","Blanco")
+uswages$smsa<-factor(uswages$smsa)
+levels(uswages$smsa)<-c("Area","NotArea")
+uswages$ne<-factor(uswages$ne)
+levels(uswages$ne)<-c("NE","NotNE")
+uswages$mw<-factor(uswages$mw)
+levels(uswages$mw)<-c("MW","NotMW")
+uswages$we<-factor(uswages$we)
+levels(uswages$we)<-c("WE","NotWE")
+uswages$so<-factor(uswages$so)
+levels(uswages$so)<-c("SO","NotSO")
+uswages$pt<-factor(uswages$pt)
+levels(uswages$pt)<-c("pt","Notpt")
+uswages$Localy<-factor(uswages$Localy)
+
+```
+
+Realicemos unas gráficas
+
+```{r}
+g1<-ggplot(uswages,aes(x=educ))+geom_histogram(bins = 30)
+g2<-ggplot(uswages,aes(x=educ))+geom_density()
+g3<-ggplot(uswages,aes(x=educ,y=wage))+geom_point()
+g4<-ggplot(uswages,aes(x=exper))+geom_histogram(bins=30)
+g5<-ggplot(uswages,aes(x=exper))+geom_density()
+g6<-ggplot(uswages,aes(x=exper,y=wage))+geom_point()
+grid.arrange(g1,g2,g3,g4,g5,g6,ncol=3)
+```
+
+Estas gráficas relacionan parámetros cuantitativos y estos con una parámetro de tipo factor.
+
+```{r}
+g7<-ggplot(uswages,aes(x=educ,y=wage, shape=race))+geom_point(na.rm=TRUE)+theme(legend.position = "top",legend.direction ="horizontal")
+g8<-ggplot(uswages,aes(x=educ,y=wage))+geom_point(na.rm=TRUE,size=1)+facet_grid(~ race)
+g9<-ggplot(uswages,aes(x=exper,y=wage, shape=race))+geom_point(na.rm=TRUE)+theme(legend.position = "top",legend.direction ="horizontal")
+g10<-ggplot(uswages,aes(x=exper,y=wage))+geom_point(na.rm=TRUE,size=1)+facet_grid(~ race)
+grid.arrange(g7,g8,g9,g10,ncol=2)
+```
+
+```{r}
+ggplot(uswages,aes(x=educ,y=wage, shape=race,color=race,size=exper))+geom_point(na.rm = T)+theme(legend.position = "top", legend.direction = "horizontal" )
+```
+
+Coparemos la zona donde se vive con los parámetros cuantitativos
+
+```{r}
+ggplot(data = uswages, aes(x = Localy, y = wage,fill=race)) + 
+  geom_boxplot(alpha = 0.5) +
+  geom_jitter(alpha = 0.15)
+
+ggplot(data=uswages, aes(wage, fill=Localy))+geom_density(alpha=0.5)
+```
